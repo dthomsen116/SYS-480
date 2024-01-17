@@ -6,7 +6,7 @@
 |---|---|---|
 | IPMI | 192.168.7.160 | cncs-sysadmin |
 | Hypervisor |  | super18 |
-| ESXi | 192.168.7.28 |  |
+| ESXi | 192.168.7.28 | root |
 | Vyos-480 eth0 | 192.168.7.58 |  |
 | Vyos-480 eth1 | 10.0.17.2 |  |
 | xubuntu WAN | 10.0.17.100 |  |
