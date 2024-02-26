@@ -131,16 +131,16 @@ function Select-VM(){
 function Select-Datastore(){
     try{
         $ds=$null
-        $ds = Get-Datastore
-        $ds = $ds | Sort-Object Name
+        $ds = Get-Datastore | Sort-Object Name
         $index = 1
         Write-Host ""
         Write-Host "Select a Datastore" 
         foreach ($d in $ds){
-            Write-Host -ForegroundColor Cyan [$index] $d.Name " -- Free Space: $($d.FreeSpace/1GB)GB"
+            $free = [math]::Round($d.FreeSpaceGB, 2)
+            Write-Host -ForegroundColor Cyan [$index] $($d.Name) " -- Free Space: $free GB"
             $index++
             }
-        Write-Host ""
+            Write-Host ""
         $selection = Read-Host "Select a Datastore by number"
         $ds = $ds[$selection-1]
         Write-Host ""
