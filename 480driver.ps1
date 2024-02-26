@@ -1,7 +1,7 @@
 Import-Module '480-utils' -Force 
 
 #Banner
-480Test
+480Banner
 
 #set the config
 $conf=Get-480Config -config_path "/home/david/Documents/SYS-480/480.json"

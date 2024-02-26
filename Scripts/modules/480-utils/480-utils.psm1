@@ -1,4 +1,4 @@
-function 480Test(){
+function 480Banner(){
     $banner = @"
 
      ____  _  _   __   _  _  ____  ____  __ _     ____  _  _  ____        ___  ____   __  
@@ -189,7 +189,6 @@ function CreateClone(){
         $folder=Select-Folder
         $vm=Select-VM
         $ds=Select-Datastore
-        $snap=Select-Snapshot
         if ($clone_type -eq "1"){
             New-VM -Name $clone_name -VM $vm -Datastore $ds -VMHost "192.168.7.28" -Location $folder -RunAsync
             Write-Host -ForegroundColor Green "Full Clone created: $clone_name"
@@ -227,36 +226,29 @@ function Terminate-VM(){
     }
 }
 
-function Select-Network(){
-    try{
-        $nw=$null
-        $nw = Get-Network
-        $nw = $nw | Sort-Object Name
-        $index = 1
-        Write-Host ""
-        Write-Host "Select a Network" 
-        foreach ($n in $nw){
-            Write-Host -ForegroundColor Cyan [$index] $n.Name
-           }
-        Write-Host ""
-        $selection = Read-Host "Select a Network by number"
-        $nw = $nw[$selection-1]
-        Write-Host ""
-        Write-Host -ForegroundColor Green "Selected Network: $($nw.Name)"
-        return $nw
-        }
-    catch{
-        Write-Host -ForegroundColor Red "Error selecting Network"
-        return $null
-    }
-}
-
 function changeNetwork(){
-    $vm=Select-VM
-    $nw=Select-Network
-    Get-NetworkAdapter -VM $vm | Set-NetworkAdapter -NetworkName $nw -Confirm:$false
-    Write-Host -ForegroundColor Green "Network adapter for $($vm.Name) changed to $($nw.Name)"
-}            
+    $vm = Select-VM
+        
+    Write-Host -ForegroundColor Cyan "Listing all networks:"
+    $allnw = Get-VirtualNetwork
+    $index = 1
+    Write-Host ""
+    Write-Host "Select a Network"
+    foreach ($n in $allnw){
+        Write-Host -ForegroundColor Cyan [$index] $n.Name
+        $index++
+    }
+    $newNetwork = Read-Host "Enter the number of the new network for the VM"
+    if ($newNetwork -eq "1"){
+        $newNetwork = $allnw[0].Name
+    }
+    else{
+        $newNetwork = $allnw[$newNetwork-1].Name
+    }
+    
+    $networkAdapter = $vm | Get-NetworkAdapter
+    Set-NetworkAdapter -NetworkAdapter $networkAdapter -NetworkName $newNetwork
+}  
 
 function editPower(){
     $vm=Select-VM
