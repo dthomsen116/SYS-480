@@ -52,6 +52,18 @@ function Connect-480([string] $server){
     else {
         #connect to the server
         Connect-VIServer -Server $server
+        Write-Host -ForegroundColor Green "Connected to $server"
+    }
+}
+
+function Disconnect-480(){
+    #are we already connected?
+    if ($global:DefaultVIServer){
+        Disconnect-VIServer -Server $global:DefaultVIServer -Confirm:$false
+        Write-Host -ForegroundColor Green "Disconnected from vcenter.david.local"
+    }
+    else {
+        Write-Host -ForegroundColor Red "Not connected to a server"
     }
 }
 
@@ -218,20 +230,19 @@ function Terminate-VM(){
 function Select-Network(){
     try{
         $nw=$null
-        $nw = Get-NetworkAdapter -VM $vm
+        $nw = Get-Network
         $nw = $nw | Sort-Object Name
         $index = 1
         Write-Host ""
         Write-Host "Select a Network" 
         foreach ($n in $nw){
-            Write-Host -ForegroundColor Cyan [$index] $n.NetworkName
-            $index++
-            }
+            Write-Host -ForegroundColor Cyan [$index] $n.Name
+           }
         Write-Host ""
         $selection = Read-Host "Select a Network by number"
         $nw = $nw[$selection-1]
         Write-Host ""
-        Write-Host -ForegroundColor Green "Selected Network: $($nw.NetworkName)"
+        Write-Host -ForegroundColor Green "Selected Network: $($nw.Name)"
         return $nw
         }
     catch{
@@ -243,9 +254,9 @@ function Select-Network(){
 function changeNetwork(){
     $vm=Select-VM
     $nw=Select-Network
-    Set-NetworkAdapter -NetworkAdapter $nw -Connected:$true -Confirm:$false
-    Write-Host -ForegroundColor Green "Network changed for $($vm.Name)"
-}
+    Get-NetworkAdapter -VM $vm | Set-NetworkAdapter -NetworkName $nw -Confirm:$false
+    Write-Host -ForegroundColor Green "Network adapter for $($vm.Name) changed to $($nw.Name)"
+}            
 
 function editPower(){
     $vm=Select-VM
