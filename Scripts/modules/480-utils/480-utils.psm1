@@ -156,7 +156,7 @@ function 480Banner(){
 
 #function to select a random banner from the banners above
 
-    $randomBan = Get-Random -Minimum 1 -Maximum 5
+    $randomBan = Get-Random -Minimum 1 -Maximum 6
     $banner = if ($randomBan -eq 1) { $banner1 }
     elseif ($randomBan -eq 2) { $banner2 }
     elseif ($randomBan -eq 3) { $banner3 }
