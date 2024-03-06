@@ -13,11 +13,12 @@ $conf=Get-480Config -config_path "/home/david/Documents/SYS-480/480.json"
     if ($global:DefaultVIServer){
         #Menu
         Write-Host -ForegroundColor Cyan "1. Clone a VM"
-        Write-Host -ForegroundColor Cyan "2. Delete a VM"
+        Write-Host -ForegroundColor Red "2. Delete a VM"
         Write-Host -ForegroundColor Cyan "3. Switch A VM's Network"
         Write-Host -ForegroundColor Cyan "4. Edit Powerstate of a VM"
         Write-Host -ForegroundColor Red "5. Disconnect from the server"
-        Write-Host -ForegroundColor DarkRed "6. Exit"
+        Write-Host -ForegroundColor Cyan "6. Create a Virtual Switch"
+        Write-Host -ForegroundColor DarkRed "7. Exit"
 
         $ans = Read-Host "Select an option:"
 
@@ -36,7 +37,10 @@ $conf=Get-480Config -config_path "/home/david/Documents/SYS-480/480.json"
         if($ans -eq 5){
             Disconnect-480
         }
-        if($ans -eq "exit" -or $ans -eq "6"){
+        if($ans -eq 6){
+            CreateVirtSwitch
+        }
+        if($ans -eq "exit" -or $ans -eq "7"){
             exit
         }
         else{

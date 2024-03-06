@@ -247,60 +247,12 @@ function Select-Snapshot(){
         Write-Host -ForegroundColor Green "Selected Snapshot: $($snap.Name)"
         return $snap
         }
-    catch{
-        Write-Host -ForegroundColor Red "Error selecting Snapshot"
-        return $null
-    }
-}
-
-function CreateClone(){
-    Write-Host -ForegroundColor Cyan "Clone Type:"
-    Write-Host -ForegroundColor DarkCyan "1 - Full Clone"
-    Write-Host -ForegroundColor DarkCyan "2 - Linked Clone"
-    $clone_type= Read-Host "Select a Clone Type by number"
-
-    if ($clone_type -eq "1"){
-        $clone_name = Read-Host "Enter the name of the new clone"
-        $folder=Select-Folder
-        $vm=Select-VM
-        $ds=Select-Datastore
-        if ($clone_type -eq "1"){
-            New-VM -Name $clone_name -VM $vm -Datastore $ds -VMHost "192.168.7.28" -Location $folder -RunAsync
-            Write-Host -ForegroundColor Green "Full Clone created: $clone_name"
+            catch{
+                Write-Host -ForegroundColor Red "Error selecting Snapshot"
+                return $null
+            }
         }
-    }
-    elseif ($clone_type -eq "2"){
-        $clone_name = Read-Host "Enter the name of the new clone"
-        $folder=Select-Folder
-        $vm=Select-VM
-        $ds=Select-Datastore
-        $snap=Select-Snapshot
-        New-VM -Name $clone_name -VM $vm -Datastore $ds -VMHost "192.168.7.28" -Location $folder -LinkedClone -ReferenceSnapshot $snap
-    }
-    else{
-        continue
-    }
-}
-
-function Terminate-VM(){
-    $folder = Select-Folder
-    if ($folder -eq "ProdEnv"){
-        Write-Host -ForegroundColor Red "You cannot delete VMs from the ProdEnv folder"
-        exit
-    }
-    else{
-        $vm = Select-VM
-        $confirmation = Read-Host "Are you sure you want to delete $($vm.Name)? (yes/no)"
-        if ($confirmation -eq "yes" -or $confirmation -eq "y"){
-            Remove-VM -VM $vm -DeleteFromDisk -Confirm:$false
-            Write-Host -ForegroundColor Green "VM $($vm.Name) deleted"
-        }
-        else{
-            Write-Host -ForegroundColor Red "VM $($vm.Name) not deleted"
-        }
-    }
-}
-
+        
 function changeNetwork(){
     $vm = Select-VM
         
@@ -352,4 +304,29 @@ function editPower(){
         else{
             continue
         }
+}
+
+# Gets network information for a selected VM
+
+
+function Get-NetworkInfo(){
+    $vm = Select-VM
+    $guest = Get-VMGuest -VM $vm
+    $network = Get-NetworkAdapter -VM $vm
+    
+
+    $i = 0
+    foreach($adapter in $network){
+        $name = $adapter.Name
+        $ip = $guest.IPAddress[$i] | Where-Object { $_ -match '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}' }
+        $mac = $adapter.MACAddress
+        $subnet = $adapter.SubnetMask
+
+        Write-Host -ForegroundColor Cyan "Network Information for $($vm.Name)"
+        Write-Host -ForegroundColor DarkCyan "Network Name: $name"
+        Write-Host -ForegroundColor DarkCyan "IP Address: $ip"
+        Write-Host -ForegroundColor DarkCyan "MAC Address: $mac"
+        Write-Host -ForegroundColor DarkCyan "Subnet: $subnet"
+        $i++
+    }
 }
