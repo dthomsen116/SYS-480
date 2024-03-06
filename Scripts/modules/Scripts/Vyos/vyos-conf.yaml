@@ -1,16 +1,17 @@
-#setup for BlueFW-0X
+# Setup for BlueFW-0X
 
-- name: "BlueFW-01"
+- name: "BlueFW-0X"
   hosts: vyos
   vars_prompt:
-
-  -name: password
-    prompt: "Enter password for BlueFW-01"
+    
+  - name: password
+    prompt: "Enter password for BlueFW-0X"
     private: true
+
   tasks:
     - name: set the pass hash
       set_fact:
-        pass_hash: "{{ password | password_hash('sha512') }}"
+        pass_hash: "{{ password | password_hash('sha512') }}"  
     - name: load conf from template
       become: yes
       template:
@@ -19,6 +20,6 @@
         mode: "0775"
         owner: root
         group: vyattacfg
-    -name: bounce and end
+    - name: bounce and end
       become: yes
-      shell: nohup bash -c "/usr/bin/sleep 5 && /usr/sbin/shutdown -r now" &
+      shell: nohup bash -c '/usr/bin/sleep 5 && /usr/sbin/shutdown -r now' &
