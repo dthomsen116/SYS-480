@@ -330,3 +330,5 @@ function Get-NetworkInfo(){
         $i++
     }
 }
+
+
