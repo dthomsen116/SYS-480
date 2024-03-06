@@ -187,7 +187,15 @@ function Select-VM(){
         Write-Host ""
         Write-Host "Select a VM" 
         foreach ($vm in $vms){
-            Write-Host -ForegroundColor Cyan [$index] $vm.Name
+            Write-Host -ForegroundColor Cyan [$index] $vm.Name 
+            if ($vm.PowerState -eq "PoweredOn") {
+                Write-Host -ForegroundColor Green "Powered On"
+                }   
+            else {
+                Write-Host -ForegroundColor Red "Powered Off"
+                }
+
+            Write-Host ""
             $index++
             }
         Write-Host ""
@@ -306,9 +314,6 @@ function editPower(){
         }
 }
 
-# Gets network information for a selected VM
-
-
 function Get-NetworkInfo(){
     $vm = Select-VM
     $guest = Get-VMGuest -VM $vm
@@ -331,4 +336,15 @@ function Get-NetworkInfo(){
     }
 }
 
+function New-Network(){
+# creates a new virtual Switch and port group
+    $vswitch = Read-Host "Enter the name of the new vSwitch: "
+    $vmHost = (Get-VMHost).Name
+    $switch = New-VirtualSwitch -VMHost $vmHost -Name $vswitch -ErrorAction Stop
+    Write-Host -ForegroundColor Green "New vSwitch $vswitch created on $vmHost"
+
+    $portName = Read-Host "Enter the name of the new port group name:"
+    New-VirtualPortGroup -VirtualSwitch $vswitch -Name $portName -ErrorAction Stop
+    Write-Host -ForegroundColor Green "New port group $portName created on $vswitch"
+}
 

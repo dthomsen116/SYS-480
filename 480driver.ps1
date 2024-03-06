@@ -18,7 +18,8 @@ $conf=Get-480Config -config_path "/home/david/Documents/SYS-480/480.json"
         Write-Host -ForegroundColor Cyan "4. Edit Powerstate of a VM"
         Write-Host -ForegroundColor Red "5. Disconnect from the server"
         Write-Host -ForegroundColor Cyan "6. Create a Virtual Switch"
-        Write-Host -ForegroundColor DarkRed "7. Exit"
+        Write-Host -ForegroundColor Cyan "7. Check Network Information"
+        Write-Host -ForegroundColor DarkRed "8. Exit"
 
         $ans = Read-Host "Select an option:"
 
@@ -40,7 +41,10 @@ $conf=Get-480Config -config_path "/home/david/Documents/SYS-480/480.json"
         if($ans -eq 6){
             CreateVirtSwitch
         }
-        if($ans -eq "exit" -or $ans -eq "7"){
+        if($ans -eq 7){
+            Get-NetworkInfo
+        }
+        if($ans -eq "exit" -or $ans -eq "8"){
             exit
         }
         else{
