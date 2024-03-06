@@ -39,7 +39,7 @@ $conf=Get-480Config -config_path "/home/david/Documents/SYS-480/480.json"
             Disconnect-480
         }
         if($ans -eq 6){
-            CreateVirtSwitch
+            New-Network
         }
         if($ans -eq 7){
             Get-NetworkInfo

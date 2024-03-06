@@ -219,6 +219,17 @@ function Terminate-VM(){
     }
     else{
         $vm = Select-VM
+        if($vm.PowerState -eq "PoweredOn"){
+            write-host -ForegroundColor Red "VM $($vm.Name) is powered on"
+            $ans = Read-Host "Would you like to power off the VM? (y/n)"
+            if($ans -eq "y" -or $ans -eq "yes"){
+                Stop-VM -VM $vm -Confirm:$false
+                Write-Host -ForegroundColor Green "VM $($vm.Name) powered off"
+            }
+            else{
+                Write-Host -ForegroundColor Red "VM $($vm.Name) not powered off"
+            }
+        }
         $confirmation = Read-Host "Are you sure you want to delete $($vm.Name)? (yes/no)"
         if ($confirmation -eq "yes" -or $confirmation -eq "y"){
             Remove-VM -VM $vm -DeleteFromDisk -Confirm:$false
@@ -373,10 +384,10 @@ function Get-NetworkInfo(){
         $name = $adapter.Name
         $ip = $guest.IPAddress[$i] | Where-Object { $_ -match '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}' }
         $mac = $adapter.MACAddress
-        $subnet = $adapter.SubnetMask
+        $subnet = "255.255.255.0"
 
         Write-Host -ForegroundColor Cyan "Network Information for $($vm.Name)"
-        Write-Host -ForegroundColor DarkCyan "Network Name: $name"
+        Write-Host -ForegroundColor DarkCyan "Hostname: " $vm.ExtensionData.Guest.Hostname
         Write-Host -ForegroundColor DarkCyan "IP Address: $ip"
         Write-Host -ForegroundColor DarkCyan "MAC Address: $mac"
         Write-Host -ForegroundColor DarkCyan "Subnet: $subnet"
@@ -395,4 +406,59 @@ function New-Network(){
     New-VirtualPortGroup -VirtualSwitch $vswitch -Name $portName -ErrorAction Stop
     Write-Host -ForegroundColor Green "New port group $portName created on $vswitch"
 }
+
+# function changeHostName(){
+#     $vm = Select-VM
+#     $guest = Get-VMGuest -VM $vm
+#     $network = Get-NetworkAdapter -VM $vm
+
+#     $hostnameold = $vm.ExtensionData.Guest.Hostname
+
+#     Write-Host -ForegroundColor Cyan "Current Hostname: $hostnameold"
+#     $newHostname = Read-Host "Enter the new hostname for $($vm.Name)"
+
+# #     $scriptVyOS = @"
+# # #!/bin/bash
+# # config
+# # set system host-name $newHostname
+# # commit
+# # save
+# # exit
+# # "@
+#     $scriptLinux = @"
+# #!/bin/bash
+# hostnamectl set-hostname $newHostname
+# "@
+#     $scriptWindows = @"
+# $computer = Get-WmiObject Win32_ComputerSystem
+# $computer.Rename($newHostname)
+# "@
+#     try{
+#         Write-Host -ForegroundColor Cyan "OS Detection:" $guest.GuestFamily
+#         $res = Read-Host "Is this host using Windows or Linux?(w/l)"
+
+#         if($res -eq "w"){
+#             $username = Read-Host "Enter the username for the VM:"
+#             $password = Read-Host "Enter the password for the VM:" -AsSecureString
+#             Invoke-VMScript -VM $vm -ScriptText $scriptWindows -GuestUser $username -GuestPassword $password -ErrorAction Stop
+#             Write-Host -ForegroundColor Green "Hostname changed to $newHostname"
+#         }elseif($res -eq "l"){
+#             $username = Read-Host "Enter the username for the VM:"
+#             $password = Read-Host "Enter the password for the VM:" -AsSecureString
+#             Invoke-VMScript -VM $vm -ScriptText $scriptLinux -GuestUser $username -GuestPassword $password -ErrorAction Stop
+#             Write-Host -ForegroundColor Green "Hostname changed to $newHostname"
+#         }
+#         # elseif($res -eq "v"){
+#         #     $username = Read-Host "Enter the username for the VM:"
+#         #     $password = Read-Host "Enter the password for the VM:" -AsSecureString
+#         #     Invoke-VMScript -VM $vm -ScriptText $scriptVyOS -GuestUser $username -GuestPassword $password -ErrorAction Stop
+#         #     Write-Host -ForegroundColor Green "Hostname changed to $newHostname"
+#         # }
+#     } catch{
+#         Write-Host -ForegroundColor Red "Error changing hostname"
+#     }
+    
+
+
+# }
 
