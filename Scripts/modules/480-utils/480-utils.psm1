@@ -334,31 +334,31 @@ function changeNetwork(){
 }  
 
 function editPower(){
-    $vm=Select-VM
-        if ($ps -eq "PoweredOff"){
-            $ps = $vm.PowerState
-            $wps = Write-Host -ForegroundColor Red "Power state: $ps"
-            Write-host -ForegroundColor Cyan "Current powerstate of $($vm.Name): $wps"
-        }
-        else{
-            $ps = $vm.PowerState
-            $wps = Write-Host -ForegroundColor Green "Power state: $ps"
-            Write-host -ForegroundColor Cyan "Current powerstate of $($vm.Name): $wps"
-        }    
-    Write-Host -ForegroundColor Cyan "Power State:"
-    Write-Host -ForegroundColor DarkCyan "1 - Power On"
-    Write-Host -ForegroundColor DarkCyan "2 - Power Off"
-    $power_state= Read-Host "Select a Power State by number"
-        if ($power_state -eq "1"){
-            Start-VM -VM $vm -Confirm:$false
-            Write-Host -ForegroundColor Green "VM $($vm.Name) powered on"
-        }
-        elseif ($power_state -eq "2"){
-            Stop-VM -VM $vm -Confirm:$false
-            Write-Host -ForegroundColor Green "VM $($vm.Name) powered off"
-        }
-        else{
-            continue
+    try{
+        $vm=Select-VM
+        if ($vm.PowerState -eq "PoweredOn") {
+            Write-Host -ForegroundColor Green "$($vm.name) - Powered On"
+            }   
+        else {
+            Write-Host -ForegroundColor Red "$($vm.name) - Powered Off"
+            }
+
+        Write-Host -ForegroundColor DarkCyan "1 - Power On"
+        Write-Host -ForegroundColor DarkCyan "2 - Power Off"
+        $power_state= Read-Host "Select a Power State by number"
+            if ($power_state -eq "1"){
+                Start-VM -VM $vm -Confirm:$false
+                Write-Host -ForegroundColor Green "VM $($vm.Name) powered on"
+            }
+            elseif ($power_state -eq "2"){
+                Stop-VM -VM $vm -Confirm:$false
+                Write-Host -ForegroundColor Green "VM $($vm.Name) powered off"
+            }
+            else{
+                continue
+            }
+        }catch{
+            Write-Host -ForegroundColor Red "Error editing Power State"
         }
 }
 
