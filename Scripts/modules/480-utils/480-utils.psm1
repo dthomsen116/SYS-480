@@ -386,12 +386,12 @@ function Get-NetworkInfo(){
         $mac = $adapter.MACAddress
         $subnet = "255.255.255.0"
 
-        Write-Host -ForegroundColor Cyan "Network Information for $($vm.Name)"
-        Write-Host -ForegroundColor DarkCyan "Hostname: " $vm.ExtensionData.Guest.Hostname
+        Write-Host -ForegroundColor Cyan "Network Information for $($name)"
+        Write-Host -ForegroundColor DarkCyan "Hostname: " $guest.Hostname
         Write-Host -ForegroundColor DarkCyan "IP Address: $ip"
         Write-Host -ForegroundColor DarkCyan "MAC Address: $mac"
         Write-Host -ForegroundColor DarkCyan "Subnet: $subnet"
-        $i++
+        $i=$i+2
     }
 }
 
@@ -406,59 +406,3 @@ function New-Network(){
     New-VirtualPortGroup -VirtualSwitch $vswitch -Name $portName -ErrorAction Stop
     Write-Host -ForegroundColor Green "New port group $portName created on $vswitch"
 }
-
-# function changeHostName(){
-#     $vm = Select-VM
-#     $guest = Get-VMGuest -VM $vm
-#     $network = Get-NetworkAdapter -VM $vm
-
-#     $hostnameold = $vm.ExtensionData.Guest.Hostname
-
-#     Write-Host -ForegroundColor Cyan "Current Hostname: $hostnameold"
-#     $newHostname = Read-Host "Enter the new hostname for $($vm.Name)"
-
-# #     $scriptVyOS = @"
-# # #!/bin/bash
-# # config
-# # set system host-name $newHostname
-# # commit
-# # save
-# # exit
-# # "@
-#     $scriptLinux = @"
-# #!/bin/bash
-# hostnamectl set-hostname $newHostname
-# "@
-#     $scriptWindows = @"
-# $computer = Get-WmiObject Win32_ComputerSystem
-# $computer.Rename($newHostname)
-# "@
-#     try{
-#         Write-Host -ForegroundColor Cyan "OS Detection:" $guest.GuestFamily
-#         $res = Read-Host "Is this host using Windows or Linux?(w/l)"
-
-#         if($res -eq "w"){
-#             $username = Read-Host "Enter the username for the VM:"
-#             $password = Read-Host "Enter the password for the VM:" -AsSecureString
-#             Invoke-VMScript -VM $vm -ScriptText $scriptWindows -GuestUser $username -GuestPassword $password -ErrorAction Stop
-#             Write-Host -ForegroundColor Green "Hostname changed to $newHostname"
-#         }elseif($res -eq "l"){
-#             $username = Read-Host "Enter the username for the VM:"
-#             $password = Read-Host "Enter the password for the VM:" -AsSecureString
-#             Invoke-VMScript -VM $vm -ScriptText $scriptLinux -GuestUser $username -GuestPassword $password -ErrorAction Stop
-#             Write-Host -ForegroundColor Green "Hostname changed to $newHostname"
-#         }
-#         # elseif($res -eq "v"){
-#         #     $username = Read-Host "Enter the username for the VM:"
-#         #     $password = Read-Host "Enter the password for the VM:" -AsSecureString
-#         #     Invoke-VMScript -VM $vm -ScriptText $scriptVyOS -GuestUser $username -GuestPassword $password -ErrorAction Stop
-#         #     Write-Host -ForegroundColor Green "Hostname changed to $newHostname"
-#         # }
-#     } catch{
-#         Write-Host -ForegroundColor Red "Error changing hostname"
-#     }
-    
-
-
-# }
-

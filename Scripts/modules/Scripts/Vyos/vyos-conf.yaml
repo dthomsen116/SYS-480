@@ -11,11 +11,11 @@
   tasks:
     - name: set the pass hash
       set_fact:
-        pass_hash: "{{ password | password_hash('sha512') }}"  
+        password_hash: "{{ password | password_hash('sha512') }}"
     - name: load conf from template
       become: yes
       template:
-        src: Scripts/modules/Scripts/Vyos/config.j2
+        src: /home/david/Documents/SYS-480/Scripts/modules/Scripts/Vyos/config.j2
         dest: /config/config.boot
         mode: "0775"
         owner: root
