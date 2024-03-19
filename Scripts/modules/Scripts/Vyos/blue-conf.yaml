@@ -1,0 +1,22 @@
+- name: vyos network config
+  hosts: vyos
+  tasks:
+    - name: Retrieve vyos version
+      vyos_command:
+        commands: show version
+      register: version
+    - debug:
+        var: version.stdout_lines
+  
+    - name: configure Vyos DHCP
+      vyos_config:
+        save: yes
+        lines:
+          - set service dhcp-server global-parameters 'local-address  {{ lan_ip }};' 
+          - set service dhcp-server shared-network-name {{dhcp_name}} authoritative
+          - set service dhcp-server shared-network-name {{dhcp_name}} subnet {{lan_network}} default-router {{lan_ip}}
+          - set service dhcp-server shared-network-name {{dhcp_name}} subnet {{lan_network}} name-server {{dhcp_name_server}}
+          - set service dhcp-server shared-network-name {{dhcp_name}} subnet {{lan_network}} domain-name {{dhcp_domain}}
+          - set service dhcp-server shared-network-name {{dhcp_name}} subnet {{lan_network}} lease 86400
+          - set service dhcp-server shared-network-name {{dhcp_name}} subnet {{lan_network}} range {{dhcp_name}}-pool start 10.0.5.100
+          - set service dhcp-server shared-network-name {{dhcp_name}} subnet {{lan_network}} range {{dhcp_name}}-pool stop 10.0.5.150
