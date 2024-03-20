@@ -1,11 +1,17 @@
 ---
 - name: Rocky Config
   hosts: rocky
+  vars_prompt:
+    - name: sudo_password
+      prompt: "Enter sudo password for {{ ansible_user }}:"
+      private: yes
   vars:
     ssh_dir: "/home/{{ ansible_user }}/.ssh"
     authorized_keys_file: "{{ ssh_dir }}/authorized_keys"
     sudoers_file: "/etc/sudoers.d/480"
     sudoers_dropin_entry: "480"
+    ansible_user: deployer
+    ansible_become_pass: "{{ sudo_password }}"
   tasks:
     - name: Create SSH directory
       file:
@@ -14,10 +20,11 @@
         mode: '0700'
 
     - name: Create authorized_keys file
-      copy:
+      file:
         path: "{{ authorized_keys_file }}"
         state: touch
         mode: '0600'
+    
     - name: Copy public key to authorized_keys file
       blockinfile:
         dest: "{{ authorized_keys_file }}"
@@ -36,6 +43,8 @@
         line: "{{ ansible_user }} ALL=(ALL) NOPASSWD:ALL"
         create: yes
         state: present
+      become: yes
+      
 
     - name: Change hostname
       hostname:
@@ -48,6 +57,10 @@
         line: "127.0.1.1 {{ hostname }}"
       become: yes
     
+    - name: Debug Output
+      debug:
+        msg: "LAN IP: {{ lan_ip }}, Prefix: {{ prefix }}, Gateway: {{ gateway }}, Domain: {{ domain }}"
+
     - name: run nmcli to change to static address
       nmcli:
         conn_name: "{{ device }}"
@@ -55,9 +68,8 @@
         gw4: "{{ gateway }}"
         state: present
         type: ethernet
-        dns4: "{{ dns }}"
-        domain: 
-          - "{{ domain }}"
+        dns4:  
+          - "{{ dns }}"
           - "{{ gateway }}"
         method4: manual
       become: yes
