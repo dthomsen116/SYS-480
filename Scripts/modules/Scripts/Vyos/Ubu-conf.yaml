@@ -1,0 +1,86 @@
+---
+- name: Ubuntu Config
+  hosts: ubuntu
+  vars_prompt:
+    - name: sudo_password
+      prompt: "Enter sudo password for {{ ansible_user }}:"
+      private: yes
+  vars:
+    ssh_dir: "/home/{{ ansible_user }}/.ssh"
+    authorized_keys_file: "{{ ssh_dir }}/authorized_keys"
+    sudoers_file: "/etc/sudoers.d/480"
+    ansible_user: deployer
+    ansible_become_pass: "{{ sudo_password }}"
+  tasks:
+    - name: Create SSH directory
+      file:
+        path: "{{ ssh_dir }}"
+        state: directory
+        mode: '0700'
+
+    - name: Create authorized_keys file
+      file:
+        path: "{{ authorized_keys_file }}"
+        state: touch
+        mode: '0600'
+    
+    - name: Copy public key to authorized_keys file
+      blockinfile:
+        dest: "{{ authorized_keys_file }}"
+        block: "{{ pub_key }}"
+
+    - name: Create sudoers file for 480
+      file:
+        path: "{{ sudoers_file }}"
+        state: touch
+        mode: '0440'
+      become: yes
+
+    - name: Create drop in entry in /etc/sudoers.d/480
+      lineinfile:
+        path: "{{ sudoers_file }}"
+        line: "{{ ansible_user }} ALL=(ALL) NOPASSWD:ALL"
+        create: yes
+        state: present
+      become: yes
+
+    - name: Change hostname
+      hostname:
+        name: "{{ hostname }}"
+      become: yes
+
+    - name: Add hosts to host file
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ lan_ip }} {{ hostname }}"
+      become: yes
+    
+    - name: Debug Output
+      debug:
+        msg: "LAN IP: {{ lan_ip }}, Prefix: {{ prefix }}, Gateway: {{ gateway }}, Domain: {{ domain }}"
+
+    - name: Delete original Netplan config file
+      file:
+        path: /etc/netplan/00-installer-config.yaml
+        state: absent
+      become: yes
+
+#Help from CDB (github.com/cdbizzle) to correct the issues I was having with Pathing 
+    - name: Copy Netplan config file
+      become: yes
+      template:
+        src: /home/david/Documents/SYS-480/Scripts/modules/Scripts/Vyos/Inventory/00-installer-config.yaml.j2
+        dest: /etc/netplan/00-installer-config.yaml
+        mode: "0775"
+        owner: root
+        group: root
+      
+
+    - name: Apply netplan configuration and reboot
+      become: yes
+      shell: |
+        sudo netplan apply
+        sudo reboot
+      async: 45
+      poll: 0
+
