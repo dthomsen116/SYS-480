@@ -1,0 +1,48 @@
+- name: Install Wazuh
+  hosts: ubuntu
+  become: yes
+  vars:
+    ansible_user: deployer
+    ansible_become_pass: "{{ sudo_password }}"
+    ssh_dir: "/home/{{ ansible_user }}/.ssh"
+    authorized_keys_file: "{{ ssh_dir }}/authorized_keys"
+    sudoers_file: "/etc/sudoers.d/480"
+    sudoers_dropin_entry: "480"
+  vars_prompt:
+    - name: sudo_password
+      prompt: "Enter sudo password for {{ ansible_user }}:"
+      private: yes
+  tasks:
+
+    - name: Install Wazuh agent package
+      shell: curl -so wazuh-agent-4.3.11.deb https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.3.11-1_amd64.deb && sudo WAZUH_MANAGER='10.0.5.114' WAZUH_AGENT_GROUP='default' dpkg -i ./wazuh-agent-4.3.11.deb
+
+    - name: start agent
+      shell: |
+        sudo systemctl daemon-reload
+        sudo systemctl enable wazuh-agent
+        sudo systemctl start wazuh-agent
+
+    - name: Allow port 1514, 1515, 55000
+      become: yes
+      shell: |
+        sudo ufw allow 1514/tcp
+        sudo ufw allow 1515/tcp
+        sudo ufw allow 55000/tcp
+        sudo ufw reload
+
+    # - name: bounce the box
+    #   shell: "sleep 5 && shutdown -r now"
+    #   become: yes
+    #   async: 1
+    #   poll: 0
+
+# - name: Bounce the box for SIEM host
+#   hosts: siem
+#   become: yes
+#   tasks:
+#     - name: bounce the box
+#       shell: "sleep 5 && shutdown -r now"
+#       become: yes
+#       async: 1
+#       poll: 0

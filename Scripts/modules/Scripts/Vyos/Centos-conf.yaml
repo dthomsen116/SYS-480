@@ -1,6 +1,6 @@
 ---
-- name: Ubuntu Config
-  hosts: ubuntu
+- name: Rocky Config
+  hosts: siem
   vars_prompt:
     - name: sudo_password
       prompt: "Enter sudo password for {{ ansible_user }}:"
@@ -9,6 +9,7 @@
     ssh_dir: "/home/{{ ansible_user }}/.ssh"
     authorized_keys_file: "{{ ssh_dir }}/authorized_keys"
     sudoers_file: "/etc/sudoers.d/480"
+    sudoers_dropin_entry: "480"
     ansible_user: deployer
     ansible_become_pass: "{{ sudo_password }}"
   tasks:
@@ -23,13 +24,11 @@
         path: "{{ authorized_keys_file }}"
         state: touch
         mode: '0600'
-      become: yes
     
     - name: Copy public key to authorized_keys file
       blockinfile:
         dest: "{{ authorized_keys_file }}"
         block: "{{ pub_key }}"
-      become: yes
 
     - name: Create sudoers file for 480
       file:
@@ -45,47 +44,38 @@
         create: yes
         state: present
       become: yes
+      
 
     - name: Change hostname
       hostname:
         name: "{{ hostname }}"
       become: yes
-
-    - name: Add hosts to host file
+    
+    - name: add hosts to host file
       lineinfile:
         path: /etc/hosts
-        line: "{{ lan_ip }} {{ hostname }}"
+        line: "127.0.1.1 {{ hostname }}"
       become: yes
     
     - name: Debug Output
       debug:
         msg: "LAN IP: {{ lan_ip }}, Prefix: {{ prefix }}, Gateway: {{ gateway }}, Domain: {{ domain }}"
 
-    - name: Delete original Netplan config file
-      file:
-        path: /etc/netplan/00-installer-config.yaml
-        state: absent
+    - name: run nmcli to change to static address
+      nmcli:
+        conn_name: "{{ device }}"
+        ip4: "{{ lan_ip }}/{{ prefix }}"
+        gw4: "{{ gateway }}"
+        state: present
+        type: ethernet
+        dns4:  
+          - "{{ dns }}"
+          - "{{ gateway }}"
+        method4: manual
       become: yes
 
-#Help from CDB (github.com/cdbizzle) to correct the issues I was having with Pathing 
-    - name: Copy Netplan config file
+    - name: bounce the box
+      shell: 'sleep 5 && shutdown -r now'
       become: yes
-      template:
-        src: /home/david/Documents/SYS-480/Scripts/modules/Scripts/Vyos/Inventory/00-installer-config.yaml.j2
-        dest: /etc/netplan/00-installer-config.yaml
-        mode: "0775"
-        owner: root
-        group: root
-      
-
-    - name: Apply netplan configuration and reboot
-      become: yes
-      shell: |
-        sudo netplan apply
-        sudo reboot
-      async: 45
+      async: 1
       poll: 0
-      register: shell_result
-    - debug:
-        var: shell_result.stdout_lines
-

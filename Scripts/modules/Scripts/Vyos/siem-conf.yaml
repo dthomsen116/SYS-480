@@ -1,0 +1,72 @@
+- name: Install Wazuh
+  hosts: siem
+  become: yes
+  vars:
+    ansible_user: deployer
+    ansible_become_pass: "{{ sudo_password }}"
+    ssh_dir: "/home/{{ ansible_user }}/.ssh"
+    authorized_keys_file: "{{ ssh_dir }}/authorized_keys"
+    sudoers_file: "/etc/sudoers.d/480"
+    sudoers_dropin_entry: "480"
+  vars_prompt:
+    - name: sudo_password
+      prompt: "Enter sudo password for {{ ansible_user }}:"
+      private: yes
+
+  tasks:
+    - name: Curl Wazuh install script
+      shell: 'sudo curl -sO https://packages.wazuh.com/4.3/wazuh-install.sh'
+      become: yes
+
+    - name: Install Wazuh
+      shell: 'bash ./wazuh-install.sh -a -i && cd /home/{{ ansible_user }}/'
+      become: yes
+
+    - name: get password
+      shell: 'tar -O -xvf wazuh-install-files.tar wazuh-install-files/wazuh-passwords.txt'
+      register: shell_result
+    - debug:
+        var: shell_result.stdout_lines
+
+    - name: open https and start the services
+      shell: |
+        ufw allow https
+        sudo systemctl enable wazuh-manager
+        sudo systemctl enable wazuh-indexer-performance-analyzer.service
+      become: yes
+      register: shell_result
+    - debug:
+        var: shell_result.stdout_lines
+
+    # - name: bounce the box
+    #   shell: 'sleep 5 && shutdown -r now'
+    #   become: yes
+    #   async: 1
+    #   poll: 0
+
+    - name: one more time
+      shell: sudo systemctl start wazuh-indexer-performance-analyzer.service
+      become: yes
+      register: shell_result
+    - debug:
+        var: shell_result.stdout_lines
+
+
+    # - name: run nmcli to change to static address
+    #   nmcli:
+    #     conn_name: "{{ device }}"
+    #     ip4: "{{ lan_ip }}/{{ prefix }}"
+    #     gw4: "{{ gateway }}"
+    #     state: present
+    #     type: ethernet
+    #     dns4:  
+    #       - "{{ dns }}"
+    #       - "{{ gateway }}"
+    #     method4: manual
+    #   become: yes
+
+    # - name: bounce the box one more time
+    #   shell: 'sleep 5 && shutdown -r now'
+    #   become: yes
+    #   async: 1
+    #   poll: 0

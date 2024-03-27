@@ -406,3 +406,4 @@ function New-Network(){
     New-VirtualPortGroup -VirtualSwitch $vswitch -Name $portName -ErrorAction Stop
     Write-Host -ForegroundColor Green "New port group $portName created on $vswitch"
 }
+
