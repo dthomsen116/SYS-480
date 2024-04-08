@@ -407,3 +407,53 @@ function New-Network(){
     Write-Host -ForegroundColor Green "New port group $portName created on $vswitch"
 }
 
+function InstallWSMAN(){
+    $vm = Select-VM
+
+    Invoke-Command -ComputerName $vm -ScriptBlock {
+        Install-WindowsFeature -Name "WinRM-IIS-Ext" -IncludeManagementTools
+        Set-Service -Name WinRM -StartupType Automatic
+    } 
+    
+}
+function Set-WinIP {
+    try{
+        $vm = select-vm
+        $pass = Read-Host "Enter the password for the Admin account" -AsSecureString
+        $ipAddress = Read-Host "Enter the new IP address"
+        $subnetMask = Read-Host "Enter the subnet mask"
+        $dnsServer = Read-Host "Enter the DNS server"
+        $gateway = Read-Host "Enter the gateway"
+    }
+    catch{
+        Write-Host -ForegroundColor Red "error"
+    }
+
+# REPEATED ERROR: Invoke-Command: This parameter set requires WSMan, and no supported WSMan client library was found. WSMan
+# is either not installed or unavailable for this system.
+
+# Discussed this issue with CDB (github.com/cdbizzle) and suggested replacements as the variables were not being utilized properly
+#     $scriptBlock =@"
+# netsh interface ipv4 set address ?adapter static ?ip ?netmask ?gateway
+# netsh interface ipv4 add dnsserver ?adapter ?dns index=1
+# netsh interface ipv4 add dnsserver ?adapter ?gateway index=2
+# "@
+
+# $scriptBlock = $scriptBlock.Replace('\?adapter', "Ethernet0")
+# $scriptBlock = $scriptBlock.Replace('\?ip', $ipAddress)
+# $scriptBlock = $scriptBlock.Replace('\?netmask', $subnetMask)
+# $scriptBlock = $scriptBlock.Replace('\?gateway', $gateway)
+# $scriptBlock = $scriptBlock.Replace('\?dns', $dnsServer)
+
+# This one failed^
+#worked alongside (github.com/Berrym-tech) to try it again from scratch
+
+$RTwo = "netsh interface ipv4 set address Ethernet0 static $ipAddress $subnetMask $gateway"
+$DTwo = "netsh interface ipv4 add dnsserver Ethernet0 address=$dnsServer index=2"
+
+
+Invoke-VMScript -ScriptText $RTwo -VM $vm -GuestUser Administrator -GuestPassword $pass
+Invoke-VMScript -ScriptText $DTwo -VM $vm -GuestUser Administrator -GuestPassword $pass
+
+
+}

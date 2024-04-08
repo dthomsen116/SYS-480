@@ -15,7 +15,7 @@
   tasks:
 
     - name: Install Wazuh agent package
-      shell: curl -so wazuh-agent-4.3.11.deb https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.3.11-1_amd64.deb && sudo WAZUH_MANAGER='10.0.5.114' WAZUH_AGENT_GROUP='default' dpkg -i ./wazuh-agent-4.3.11.deb
+      shell: curl -so wazuh-agent-4.3.11.deb https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.3.11-1_amd64.deb && sudo WAZUH_MANAGER='10.0.5.7' WAZUH_AGENT_GROUP='default' dpkg -i ./wazuh-agent-4.3.11.deb
 
     - name: start agent
       shell: |
